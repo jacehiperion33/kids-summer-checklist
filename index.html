@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Agenda for Aliyah, Gianna & Amilia</title>
+    <style>
+        @media print {
+            .no-print { display: none; }
+            body { margin: 0; }
+            .page-break { page-break-before: always; }
+        }
+        
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            margin: 20px;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+            min-height: 100vh;
+        }
+        
+        .header {
+            text-align: center;
+            background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .controls {
+            text-align: center;
+            margin-bottom: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .controls select, .controls button {
+            font-size: 16px;
+            padding: 10px 20px;
+            margin: 5px;
+            border: 2px solid #667eea;
+            border-radius: 25px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .controls button {
+            background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: bold;
+        }
+        
+        .controls button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .agenda-container {
+            display: grid;
+            gap: 30px;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        }
+        
+        .child-agenda {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            border: 3px solid transparent;
+            background-clip: padding-box;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .child-agenda::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, #ff9a9e, #fad0c4, #a8edea, #fed6e3);
+            z-index: -1;
+            margin: -3px;
+            border-radius: 20px;
+        }
+        
+        .aliyah { border-left: 8px solid #ff6b6b; }
+        .gianna { border-left: 8px solid #4ecdc4; }
+        .amilia { border-left: 8px solid #45b7d1; }
+        
+        .child-name {
+            font-size: 2em;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 15px;
+        }
+        
+        .aliyah .child-name { background: linear-gradient(45deg, #ff6b6b, #ffa8a8); color: white; }
+        .gianna .child-name { background: linear-gradient(45deg, #4ecdc4, #7fdbda); color: white; }
+        .amilia .child-name { background: linear-gradient(45deg, #45b7d1, #7dd3fc); color: white; }
+        
+        .date-info {
+            text-align: center;
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 2px dashed #667eea;
+        }
+        
+        .section {
+            margin-bottom: 25px;
+            padding: 15px;
+            border-radius: 15px;
+            background: #f8f9fa;
+            border-left: 5px solid #667eea;
+        }
+        
+        .section h3 {
+            margin: 0 0 15px 0;
+            font-size: 1.4em;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .task-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .task-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            font-size: 1.1em;
+            border-bottom: 1px dashed #ddd;
+        }
+        
+        .task-item:last-child {
+            border-bottom: none;
+        }
+        
+        .checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #667eea;
+            border-radius: 4px;
+            margin-right: 12px;
+            display: inline-block;
+            background: white;
+        }
+        
+        .special-subject {
+            background: linear-gradient(45deg, #ffd89b 0%, #19547b 100%);
+            color: white;
+            text-align: center;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            font-size: 1.2em;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .reward-section {
+            background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .sticker-chart {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .sticker-day {
+            background: white;
+            color: #333;
+            padding: 10px 5px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 0.9em;
+            min-height: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .emoji {
+            font-size: 1.5em;
+            margin-right: 5px;
+        }
+        
+        .chore-spinner-info {
+            background: #fff3cd;
+            border: 2px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            font-weight: bold;
+            color: #856404;
+        }
+        
+        .sunday-special {
+            background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            font-size: 1.3em;
+            margin: 20px 0;
+        }
+        
+        @media print {
+            body { background: white; }
+            .child-agenda { page-break-inside: avoid; margin-bottom: 30px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🌟 Daily Adventure Agenda 🌟</h1>
+        <p>For Aliyah, Gianna & Amilia</p>
+    </div>
+    
+    <div class="controls no-print">
+        <label for="daySelect">Choose Day: </label>
+        <select id="daySelect">
+            <option value="Monday">Monday</option>
+            <option value="Tuesday">Tuesday</option>
+            <option value="Wednesday">Wednesday</option>
+            <option value="Thursday">Thursday</option>
+            <option value="Friday">Friday</option>
+            <option value="Saturday">Saturday</option>
+            <option value="Sunday">Sunday</option>
+        </select>
+        <button onclick="updateAgenda()">Generate Agenda</button>
+        <button onclick="window.print()">🖨️ Print</button>
+    </div>
+    
+    <div id="agendaContent" class="agenda-container">
+        <!-- Content will be generated here -->
+    </div>
+
+    <script>
+        const specialSubjects = {
+            'Monday': {
+                title: 'Science Exploration 🔬',
+                activities: {
+                    aliyah: 'Simple experiment: Mix colors with water and food coloring',
+                    gianna: 'Nature walk to collect leaves and observe different shapes',
+                    amilia: 'Watch science documentary about space or animals'
+                }
+            },
+            'Tuesday': {
+                title: 'Music & Rhythm 🎵',
+                activities: {
+                    aliyah: 'Sing nursery rhymes and clap to the beat',
+                    gianna: 'Practice instrument or learn a new song',
+                    amilia: 'Create a rhythm pattern or compose a short melody'
+                }
+            },
+            'Wednesday': {
+                title: 'History & Culture 🏛️',
+                activities: {
+                    aliyah: 'Listen to a story about different countries',
+                    gianna: 'Learn about a historical figure through videos',
+                    amilia: 'Research an ancient civilization and write 3 facts'
+                }
+            },
+            'Thursday': {
+                title: 'Language & Communication 📚',
+                activities: {
+                    aliyah: 'Practice letter sounds and read picture book aloud',
+                    gianna: 'Write a short story or poem',
+                    amilia: 'Journal writing about your week or read novel chapter'
+                }
+            },
+            'Friday': {
+                title: 'Math & Logic 🧮',
+                activities: {
+                    aliyah: 'Count objects around the house and play number games',
+                    gianna: 'Solve math puzzles or play math board games',
+                    amilia: 'Complete logic puzzles or advanced math problems'
+                }
+            },
+            'Saturday': {
+                title: 'Life Skills & Responsibility 👨‍🍳',
+                activities: {
+                    aliyah: 'Help prepare a simple snack safely',
+                    gianna: 'Plan next week\'s activities or help with meal prep',
+                    amilia: 'Budget planning game or research recipes to cook'
+                }
+            },
+            'Sunday': {
+                title: 'Free Day Fun! 🎉',
+                activities: {
+                    aliyah: 'Extra playtime and screen time!',
+                    gianna: 'Relax, extra screen time, and favorite activities',
+                    amilia: 'Free choice activities and extra screen time'
+                }
+            }
+        };
+
+        const learningActivities = {
+            aliyah: [
+                'Read 2 picture books aloud',
+                'Practice writing letters A-Z',
+                'Count to 50 and back',
+                'Identify shapes around the house',
+                'Practice phonics sounds'
+            ],
+            gianna: [
+                'Read chapter book for 20 minutes',
+                'Complete math worksheet or online math game',
+                'Write in daily journal',
+                'Research a topic of interest online',
+                'Practice spelling words'
+            ],
+            amilia: [
+                'Read novel for 30 minutes',
+                'Complete advanced math problems',
+                'Write creative story or essay',
+                'Research project work',
+                'Practice critical thinking exercises'
+            ]
+        };
+
+        const physicalActivities = {
+            aliyah: [
+                'Dance to favorite songs for 15 minutes',
+                'Kids yoga video',
+                'Outdoor play (running, jumping)',
+                'Simple stretching exercises',
+                'Play active games'
+            ],
+            gianna: [
+                'Bike ride around neighborhood',
+                'Jump rope for 10 minutes',
+                'Sports drills (throwing, catching)',
+                'Follow exercise video',
+                'Playground activities'
+            ],
+            amilia: [
+                'Jog or walk for 20 minutes',
+                'Follow workout video',
+                'Hiking or nature walk',
+                'Sports practice',
+                'Strength exercises'
+            ]
+        };
+
+        const creativeActivities = {
+            aliyah: [
+                'Coloring books or drawing',
+                'Play with playdough',
+                'Simple craft project',
+                'Building with blocks',
+                'Painting with watercolors'
+            ],
+            gianna: [
+                'Drawing or sketching',
+                'DIY craft project',
+                'Beginner instrument practice',
+                'Creative writing',
+                'Photography with supervision'
+            ],
+            amilia: [
+                'Painting or advanced art project',
+                'Creative writing stories',
+                'Advanced crafts or sewing',
+                'Digital art or design',
+                'Music composition'
+            ]
+        };
+
+        function getRandomActivity(activities) {
+            return activities[Math.floor(Math.random() * activities.length)];
+        }
+
+        function generateChildAgenda(childName, day) {
+            const isWeekend = day === 'Sunday';
+            const subject = specialSubjects[day];
+            
+            let agenda = `
+                <div class="child-agenda ${childName.toLowerCase()}">
+                    <div class="child-name">${childName}</div>
+                    <div class="date-info">📅 ${day}</div>
+            `;
+
+            if (isWeekend) {
+                agenda += `
+                    <div class="sunday-special">
+                        🎉 SUNDAY FUNDAY! 🎉<br>
+                        No chores today - just fun and relaxation!<br>
+                        Extra screen time allowed! 📺🎮
+                    </div>
+                `;
+            }
+
+            // Morning Routine
+            agenda += `
+                <div class="section">
+                    <h3><span class="emoji">🌅</span>Morning Routine</h3>
+                    <ul class="task-list">
+                        <li class="task-item"><span class="checkbox"></span>Brush teeth</li>
+                        <li class="task-item"><span class="checkbox"></span>Get dressed</li>
+                        <li class="task-item"><span class="checkbox"></span>Make own bed</li>
+                        <li class="task-item"><span class="checkbox"></span>Make breakfast (optional/help)</li>
+                    </ul>
+                </div>
+            `;
+
+            // Chores (not on Sunday)
+            if (!isWeekend) {
+                agenda += `
+                    <div class="section">
+                        <h3><span class="emoji">🧹</span>Chores</h3>
+                        <div class="chore-spinner-info">
+                            🎲 Spin the chore spinner at home and complete 3 chores!
+                        </div>
+                        <ul class="task-list">
+                            <li class="task-item"><span class="checkbox"></span>Chore #1: _______________</li>
+                            <li class="task-item"><span class="checkbox"></span>Chore #2: _______________</li>
+                            <li class="task-item"><span class="checkbox"></span>Chore #3: _______________</li>
+                        </ul>
+                    </div>
+                `;
+            }
+
+            // Learning Activity
+            agenda += `
+                <div class="section">
+                    <h3><span class="emoji">📖</span>Learning Activity</h3>
+                    <ul class="task-list">
+                        <li class="task-item"><span class="checkbox"></span>${getRandomActivity(learningActivities[childName.toLowerCase()])}</li>
+                    </ul>
+                </div>
+            `;
+
+            // Physical Activity
+            agenda += `
+                <div class="section">
+                    <h3><span class="emoji">🏃‍♀️</span>Physical Activity</h3>
+                    <ul class="task-list">
+                        <li class="task-item"><span class="checkbox"></span>${getRandomActivity(physicalActivities[childName.toLowerCase()])}</li>
+                    </ul>
+                </div>
+            `;
+
+            // Creative Arts
+            agenda += `
+                <div class="section">
+                    <h3><span class="emoji">🎨</span>Creative Arts</h3>
+                    <ul class="task-list">
+                        <li class="task-item"><span class="checkbox"></span>${getRandomActivity(creativeActivities[childName.toLowerCase()])}</li>
+                    </ul>
+                </div>
+            `;
+
+            // Special Subject
+            agenda += `
+                <div class="special-subject">
+                    <div style="font-size: 1.3em; margin-bottom: 10px;">${subject.title}</div>
+                    <div style="background: rgba(255,255,255,0.2); padding: 10px; border-radius: 8px;">
+                        📝 ${subject.activities[childName.toLowerCase()]}
+                    </div>
+                </div>
+            `;
+
+            // Screen Time
+            const screenTime = isWeekend ? 'Extra screen time - enjoy!' : '1 hour after all tasks complete';
+            agenda += `
+                <div class="section">
+                    <h3><span class="emoji">📱</span>Screen Time</h3>
+                    <ul class="task-list">
+                        <li class="task-item"><span class="checkbox"></span>${screenTime}</li>
+                    </ul>
+                </div>
+            `;
+
+            // Reward Section
+            agenda += `
+                <div class="reward-section">
+                    <h3>🌟 Daily Sticker Earned 🌟</h3>
+                    <div style="font-size: 3em; margin: 10px 0;">⭐</div>
+                    <p>Complete all tasks to earn your daily sticker!</p>
+                    <div style="font-size: 0.9em; margin-top: 10px;">
+                        Complete Mon-Sat for weekly surprise reward! 🎁
+                    </div>
+                </div>
+            `;
+
+            agenda += '</div>';
+            return agenda;
+        }
+
+        function updateAgenda() {
+            const selectedDay = document.getElementById('daySelect').value;
+            const container = document.getElementById('agendaContent');
+            
+            let content = '';
+            ['Aliyah', 'Gianna', 'Amilia'].forEach((child, index) => {
+                if (index > 0) content += '<div class="page-break"></div>';
+                content += generateChildAgenda(child, selectedDay);
+            });
+            
+            container.innerHTML = content;
+        }
+
+        // Initialize with Monday
+        window.onload = function() {
+            updateAgenda();
+        };
+    </script>
+</body>
+</html>
