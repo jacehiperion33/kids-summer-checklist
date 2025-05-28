@@ -43,7 +43,7 @@
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
         
-        .controls select, .controls button {
+        .controls select, .controls button, .controls input {
             font-size: 16px;
             padding: 10px 20px;
             margin: 5px;
@@ -52,6 +52,11 @@
             background: white;
             cursor: pointer;
             transition: all 0.3s ease;
+        }
+        
+        .controls input[type="date"] {
+            cursor: pointer;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
         }
         
         .controls button {
@@ -63,6 +68,10 @@
         .controls button:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .controls button.save-btn {
+            background: linear-gradient(45deg, #28a745 0%, #20c997 100%);
         }
         
         .agenda-container {
@@ -168,6 +177,7 @@
             cursor: pointer;
             transition: all 0.3s ease;
             position: relative;
+            flex-shrink: 0;
         }
         
         .checkbox.checked {
@@ -184,6 +194,23 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
+        }
+        
+        .chore-input {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 5px 8px;
+            font-size: 1em;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            flex: 1;
+            margin-left: 5px;
+            background: white;
+        }
+        
+        .chore-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
         }
         
         .special-subject {
@@ -207,39 +234,44 @@
             margin-top: 20px;
         }
         
-        .sticker-chart {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 10px;
-            margin-top: 15px;
-        }
-        
-        .sticker-day {
-            background: white;
-            color: #333;
-            padding: 10px 5px;
-            border-radius: 8px;
+        .completion-section {
+            background: linear-gradient(45deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
             text-align: center;
-            font-size: 0.9em;
-            min-height: 40px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
+            margin-top: 20px;
         }
         
-        .emoji {
-            font-size: 1.5em;
-            margin-right: 5px;
-        }
-        
-        .chore-spinner-info {
-            background: #fff3cd;
-            border: 2px solid #ffeaa7;
-            border-radius: 10px;
-            padding: 15px;
-            margin: 15px 0;
+        .submit-btn {
+            background: white;
+            color: #28a745;
+            border: 2px solid white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 1.1em;
             font-weight: bold;
-            color: #856404;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+        
+        .submit-btn:hover {
+            background: rgba(255,255,255,0.9);
+            transform: translateY(-2px);
+        }
+        
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .progress-indicator {
+            background: rgba(255,255,255,0.2);
+            padding: 10px;
+            border-radius: 10px;
+            margin: 10px 0;
         }
         
         .sunday-special {
@@ -250,6 +282,42 @@
             text-align: center;
             font-size: 1.3em;
             margin: 20px 0;
+        }
+        
+        .completed-agenda {
+            opacity: 0.8;
+            position: relative;
+        }
+        
+        .completed-agenda::after {
+            content: '✅ COMPLETED!';
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        
+        .save-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 25px;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .save-indicator.show {
+            opacity: 1;
         }
         
         @media print {
@@ -265,25 +333,25 @@
     </div>
     
     <div class="controls no-print">
-        <label for="daySelect">Choose Day: </label>
-        <select id="daySelect">
-            <option value="Monday">Monday</option>
-            <option value="Tuesday">Tuesday</option>
-            <option value="Wednesday">Wednesday</option>
-            <option value="Thursday">Thursday</option>
-            <option value="Friday">Friday</option>
-            <option value="Saturday">Saturday</option>
-            <option value="Sunday">Sunday</option>
-        </select>
+        <label for="dateSelect">Choose Date: </label>
+        <input type="date" id="dateSelect">
         <button onclick="updateAgenda()">Generate Agenda</button>
+        <button onclick="saveProgress()" class="save-btn">💾 Save Progress</button>
         <button onclick="window.print()">🖨️ Print</button>
     </div>
     
     <div id="agendaContent" class="agenda-container">
         <!-- Content will be generated here -->
     </div>
+    
+    <div id="saveIndicator" class="save-indicator">
+        ✅ Progress Saved!
+    </div>
 
     <script>
+        // In-memory storage for session persistence
+        let agendaData = {};
+        
         const specialSubjects = {
             'Monday': {
                 title: 'Science Exploration 🔬',
@@ -419,14 +487,81 @@
             return activities[Math.floor(Math.random() * activities.length)];
         }
 
-        function generateChildAgenda(childName, day) {
-            const isWeekend = day === 'Sunday';
-            const subject = specialSubjects[day];
+        function getDayOfWeek(dateStr) {
+            const date = new Date(dateStr);
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            return days[date.getDay()];
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+        }
+
+        function getDataKey(child, date) {
+            return `${child.toLowerCase()}_${date}`;
+        }
+
+        function saveTaskState(child, date, taskId, checked) {
+            const key = getDataKey(child, date);
+            if (!agendaData[key]) {
+                agendaData[key] = { tasks: {}, chores: {} };
+            }
+            agendaData[key].tasks[taskId] = checked;
+        }
+
+        function saveChoreText(child, date, choreId, text) {
+            const key = getDataKey(child, date);
+            if (!agendaData[key]) {
+                agendaData[key] = { tasks: {}, chores: {} };
+            }
+            agendaData[key].chores[choreId] = text;
+        }
+
+        function getTaskState(child, date, taskId) {
+            const key = getDataKey(child, date);
+            return agendaData[key] && agendaData[key].tasks[taskId] || false;
+        }
+
+        function getChoreText(child, date, choreId) {
+            const key = getDataKey(child, date);
+            return agendaData[key] && agendaData[key].chores[choreId] || '';
+        }
+
+        function calculateProgress(child, date) {
+            const key = getDataKey(child, date);
+            if (!agendaData[key]) return { completed: 0, total: 0 };
+            
+            const tasks = agendaData[key].tasks;
+            const completed = Object.values(tasks).filter(Boolean).length;
+            const total = Object.keys(tasks).length;
+            
+            return { completed, total };
+        }
+
+        function isAgendaComplete(child, date) {
+            const progress = calculateProgress(child, date);
+            return progress.total > 0 && progress.completed === progress.total;
+        }
+
+        function generateChildAgenda(childName, selectedDate) {
+            const dayOfWeek = getDayOfWeek(selectedDate);
+            const isWeekend = dayOfWeek === 'Sunday';
+            const subject = specialSubjects[dayOfWeek];
+            const formattedDate = formatDate(selectedDate);
+            const isCompleted = isAgendaComplete(childName, selectedDate);
+            
+            let taskCounter = 0;
             
             let agenda = `
-                <div class="child-agenda ${childName.toLowerCase()}">
+                <div class="child-agenda ${childName.toLowerCase()} ${isCompleted ? 'completed-agenda' : ''}" data-child="${childName.toLowerCase()}" data-date="${selectedDate}">
                     <div class="child-name">${childName}</div>
-                    <div class="date-info">📅 ${day}</div>
+                    <div class="date-info">📅 ${formattedDate}</div>
             `;
 
             if (isWeekend) {
@@ -444,10 +579,21 @@
                 <div class="section">
                     <h3><span class="emoji">🌅</span>Morning Routine</h3>
                     <ul class="task-list">
-                        <li class="task-item"><span class="checkbox" onclick="toggleCheckbox(this)"></span>Brush teeth</li>
-                        <li class="task-item"><span class="checkbox" onclick="toggleCheckbox(this)"></span>Get dressed</li>
-                        <li class="task-item"><span class="checkbox" onclick="toggleCheckbox(this)"></span>Make own bed</li>
-                        <li class="task-item"><span class="checkbox" onclick="toggleCheckbox(this)"></span>Make breakfast (optional/help)</li>
+            `;
+            
+            const morningTasks = ['Brush teeth', 'Get dressed', 'Make own bed', 'Make breakfast (optional/help)'];
+            morningTasks.forEach(task => {
+                const taskId = `${childName.toLowerCase()}_${selectedDate}_task_${taskCounter++}`;
+                const checked = getTaskState(childName, selectedDate, taskId);
+                agenda += `
+                    <li class="task-item">
+                        <span class="checkbox ${checked ? 'checked' : ''}" onclick="toggleCheckbox(this, '${childName}', '${selectedDate}', '${taskId}')"></span>
+                        ${task}
+                    </li>
+                `;
+            });
+            
+            agenda += `
                     </ul>
                 </div>
             `;
@@ -458,77 +604,102 @@
                     <div class="section">
                         <h3><span class="emoji">🧹</span>Chores</h3>
                         <div class="chore-spinner-info">
-                            🎲 Spin the chore spinner at home and complete 3 chores!
+                            🎲 Spin the chore spinner at home and write your 3 chores below!
                         </div>
                         <ul class="task-list">
-                            <li class="task-item"><span class="checkbox" onclick="toggleCheckbox(this)"></span>Chore #1: _______________</li>
-                            <li class="task-item"><span class="checkbox" onclick="toggleCheckbox(this)"></span>Chore #2: _______________</li>
-                            <li class="task-item"><span class="checkbox" onclick="toggleCheckbox(this)"></span>Chore #3: _______________</li>
+                `;
+                
+                for (let i = 1; i <= 3; i++) {
+                    const taskId = `${childName.toLowerCase()}_${selectedDate}_task_${taskCounter++}`;
+                    const choreId = `chore${i}`;
+                    const checked = getTaskState(childName, selectedDate, taskId);
+                    const choreText = getChoreText(childName, selectedDate, choreId);
+                    
+                    agenda += `
+                        <li class="task-item">
+                            <span class="checkbox ${checked ? 'checked' : ''}" onclick="toggleCheckbox(this, '${childName}', '${selectedDate}', '${taskId}')"></span>
+                            Chore #${i}: 
+                            <input type="text" class="chore-input" placeholder="Write your chore here..." 
+                                   value="${choreText}" 
+                                   onchange="saveChore('${childName}', '${selectedDate}', '${choreId}', this.value)">
+                        </li>
+                    `;
+                }
+                
+                agenda += `
                         </ul>
                     </div>
                 `;
             }
 
-            // Learning Activity
-            agenda += `
-                <div class="section">
-                    <h3><span class="emoji">📖</span>Learning Activity</h3>
-                    <ul class="task-list">
-                        <li class="task-item"><span class="checkbox" onclick="toggleCheckbox(this)"></span>${getRandomActivity(learningActivities[childName.toLowerCase()])}</li>
-                    </ul>
-                </div>
-            `;
+            // Other sections
+            const sections = [
+                { title: 'Learning Activity', emoji: '📖', activity: getRandomActivity(learningActivities[childName.toLowerCase()]) },
+                { title: 'Physical Activity', emoji: '🏃‍♀️', activity: getRandomActivity(physicalActivities[childName.toLowerCase()]) },
+                { title: 'Creative Arts', emoji: '🎨', activity: getRandomActivity(creativeActivities[childName.toLowerCase()]) }
+            ];
 
-            // Physical Activity
-            agenda += `
-                <div class="section">
-                    <h3><span class="emoji">🏃‍♀️</span>Physical Activity</h3>
-                    <ul class="task-list">
-                        <li class="task-item"><span class="checkbox" onclick="toggleCheckbox(this)"></span>${getRandomActivity(physicalActivities[childName.toLowerCase()])}</li>
-                    </ul>
-                </div>
-            `;
-
-            // Creative Arts
-            agenda += `
-                <div class="section">
-                    <h3><span class="emoji">🎨</span>Creative Arts</h3>
-                    <ul class="task-list">
-                        <li class="task-item"><span class="checkbox" onclick="toggleCheckbox(this)"></span>${getRandomActivity(creativeActivities[childName.toLowerCase()])}</li>
-                    </ul>
-                </div>
-            `;
+            sections.forEach(section => {
+                const taskId = `${childName.toLowerCase()}_${selectedDate}_task_${taskCounter++}`;
+                const checked = getTaskState(childName, selectedDate, taskId);
+                
+                agenda += `
+                    <div class="section">
+                        <h3><span class="emoji">${section.emoji}</span>${section.title}</h3>
+                        <ul class="task-list">
+                            <li class="task-item">
+                                <span class="checkbox ${checked ? 'checked' : ''}" onclick="toggleCheckbox(this, '${childName}', '${selectedDate}', '${taskId}')"></span>
+                                ${section.activity}
+                            </li>
+                        </ul>
+                    </div>
+                `;
+            });
 
             // Special Subject
+            const specialTaskId = `${childName.toLowerCase()}_${selectedDate}_task_${taskCounter++}`;
+            const specialChecked = getTaskState(childName, selectedDate, specialTaskId);
+            
             agenda += `
                 <div class="special-subject">
                     <div style="font-size: 1.3em; margin-bottom: 10px;">${subject.title}</div>
                     <div style="background: rgba(255,255,255,0.2); padding: 10px; border-radius: 8px;">
-                        <span class="checkbox" onclick="toggleCheckbox(this)" style="margin-right: 10px;"></span>📝 ${subject.activities[childName.toLowerCase()]}
+                        <span class="checkbox ${specialChecked ? 'checked' : ''}" onclick="toggleCheckbox(this, '${childName}', '${selectedDate}', '${specialTaskId}')" style="margin-right: 10px;"></span>
+                        📝 ${subject.activities[childName.toLowerCase()]}
                     </div>
                 </div>
             `;
 
             // Screen Time
+            const screenTaskId = `${childName.toLowerCase()}_${selectedDate}_task_${taskCounter++}`;
+            const screenChecked = getTaskState(childName, selectedDate, screenTaskId);
             const screenTime = isWeekend ? 'Extra screen time - enjoy!' : '1 hour after all tasks complete';
+            
             agenda += `
                 <div class="section">
                     <h3><span class="emoji">📱</span>Screen Time</h3>
                     <ul class="task-list">
-                        <li class="task-item"><span class="checkbox" onclick="toggleCheckbox(this)"></span>${screenTime}</li>
+                        <li class="task-item">
+                            <span class="checkbox ${screenChecked ? 'checked' : ''}" onclick="toggleCheckbox(this, '${childName}', '${selectedDate}', '${screenTaskId}')"></span>
+                            ${screenTime}
+                        </li>
                     </ul>
                 </div>
             `;
 
-            // Reward Section
+            // Completion Section
+            const progress = calculateProgress(childName, selectedDate);
             agenda += `
-                <div class="reward-section">
-                    <h3>🌟 Daily Sticker Earned 🌟</h3>
-                    <div style="font-size: 3em; margin: 10px 0;">⭐</div>
-                    <p>Complete all tasks to earn your daily sticker!</p>
-                    <div style="font-size: 0.9em; margin-top: 10px;">
-                        Complete Mon-Sat for weekly surprise reward! 🎁
+                <div class="completion-section">
+                    <h3>📊 Progress Tracker</h3>
+                    <div class="progress-indicator">
+                        Completed: ${progress.completed} / ${progress.total} tasks
+                        ${progress.total > 0 ? `(${Math.round((progress.completed / progress.total) * 100)}%)` : ''}
                     </div>
+                    <button class="submit-btn" onclick="submitDay('${childName}', '${selectedDate}')" 
+                            ${!isAgendaComplete(childName, selectedDate) ? 'disabled' : ''}>
+                        ${isCompleted ? '✅ Day Completed!' : '🚀 Submit Completed Day'}
+                    </button>
                 </div>
             `;
 
@@ -537,24 +708,100 @@
         }
 
         function updateAgenda() {
-            const selectedDay = document.getElementById('daySelect').value;
+            const selectedDate = document.getElementById('dateSelect').value;
+            if (!selectedDate) {
+                alert('Please select a date first!');
+                return;
+            }
+            
             const container = document.getElementById('agendaContent');
             
             let content = '';
             ['Aliyah', 'Gianna', 'Amilia'].forEach((child, index) => {
                 if (index > 0) content += '<div class="page-break"></div>';
-                content += generateChildAgenda(child, selectedDay);
+                content += generateChildAgenda(child, selectedDate);
             });
             
             container.innerHTML = content;
         }
 
-        function toggleCheckbox(checkbox) {
+        function toggleCheckbox(checkbox, child, date, taskId) {
             checkbox.classList.toggle('checked');
+            const checked = checkbox.classList.contains('checked');
+            saveTaskState(child, date, taskId, checked);
+            
+            // Update progress for this child's agenda
+            updateChildProgress(child, date);
         }
 
-        // Initialize with Monday
+        function saveChore(child, date, choreId, text) {
+            saveChoreText(child, date, choreId, text);
+        }
+
+        function updateChildProgress(child, date) {
+            const agendaElement = document.querySelector(`[data-child="${child.toLowerCase()}"][data-date="${date}"]`);
+            if (!agendaElement) return;
+            
+            const progress = calculateProgress(child, date);
+            const progressIndicator = agendaElement.querySelector('.progress-indicator');
+            const submitBtn = agendaElement.querySelector('.submit-btn');
+            const isComplete = isAgendaComplete(child, date);
+            
+            if (progressIndicator) {
+                progressIndicator.innerHTML = `
+                    Completed: ${progress.completed} / ${progress.total} tasks
+                    ${progress.total > 0 ? `(${Math.round((progress.completed / progress.total) * 100)}%)` : ''}
+                `;
+            }
+            
+            if (submitBtn) {
+                submitBtn.disabled = !isComplete;
+                submitBtn.textContent = isComplete ? '✅ Day Completed!' : '🚀 Submit Completed Day';
+            }
+            
+            // Update visual completion state
+            if (isComplete) {
+                agendaElement.classList.add('completed-agenda');
+            } else {
+                agendaElement.classList.remove('completed-agenda');
+            }
+        }
+
+        function submitDay(child, date) {
+            if (!isAgendaComplete(child, date)) {
+                alert('Please complete all tasks before submitting!');
+                return;
+            }
+            
+            const key = getDataKey(child, date);
+            if (!agendaData[key]) {
+                agendaData[key] = { tasks: {}, chores: {} };
+            }
+            agendaData[key].submitted = true;
+            agendaData[key].submittedAt = new Date().toISOString();
+            
+            alert(`🎉 Congratulations ${child}! You've completed your day agenda. Great job! 🌟`);
+            updateChildProgress(child, date);
+        }
+
+        function saveProgress() {
+            // In a real implementation, this would save to localStorage or a server
+            // For now, we'll just show a confirmation that data is preserved in memory
+            showSaveIndicator();
+        }
+
+        function showSaveIndicator() {
+            const indicator = document.getElementById('saveIndicator');
+            indicator.classList.add('show');
+            setTimeout(() => {
+                indicator.classList.remove('show');
+            }, 2000);
+        }
+
+        // Initialize with today's date
         window.onload = function() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('dateSelect').value = today;
             updateAgenda();
         };
     </script>
