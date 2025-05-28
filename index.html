@@ -165,6 +165,25 @@
             margin-right: 12px;
             display: inline-block;
             background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .checkbox.checked {
+            background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+            border-color: #667eea;
+        }
+        
+        .checkbox.checked::after {
+            content: '✓';
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
         }
         
         .special-subject {
@@ -425,10 +444,10 @@
                 <div class="section">
                     <h3><span class="emoji">🌅</span>Morning Routine</h3>
                     <ul class="task-list">
-                        <li class="task-item"><span class="checkbox"></span>Brush teeth</li>
-                        <li class="task-item"><span class="checkbox"></span>Get dressed</li>
-                        <li class="task-item"><span class="checkbox"></span>Make own bed</li>
-                        <li class="task-item"><span class="checkbox"></span>Make breakfast (optional/help)</li>
+                        <li class="task-item"><span class="checkbox" onclick="toggleCheckbox(this)"></span>Brush teeth</li>
+                        <li class="task-item"><span class="checkbox" onclick="toggleCheckbox(this)"></span>Get dressed</li>
+                        <li class="task-item"><span class="checkbox" onclick="toggleCheckbox(this)"></span>Make own bed</li>
+                        <li class="task-item"><span class="checkbox" onclick="toggleCheckbox(this)"></span>Make breakfast (optional/help)</li>
                     </ul>
                 </div>
             `;
@@ -442,9 +461,9 @@
                             🎲 Spin the chore spinner at home and complete 3 chores!
                         </div>
                         <ul class="task-list">
-                            <li class="task-item"><span class="checkbox"></span>Chore #1: _______________</li>
-                            <li class="task-item"><span class="checkbox"></span>Chore #2: _______________</li>
-                            <li class="task-item"><span class="checkbox"></span>Chore #3: _______________</li>
+                            <li class="task-item"><span class="checkbox" onclick="toggleCheckbox(this)"></span>Chore #1: _______________</li>
+                            <li class="task-item"><span class="checkbox" onclick="toggleCheckbox(this)"></span>Chore #2: _______________</li>
+                            <li class="task-item"><span class="checkbox" onclick="toggleCheckbox(this)"></span>Chore #3: _______________</li>
                         </ul>
                     </div>
                 `;
@@ -455,7 +474,7 @@
                 <div class="section">
                     <h3><span class="emoji">📖</span>Learning Activity</h3>
                     <ul class="task-list">
-                        <li class="task-item"><span class="checkbox"></span>${getRandomActivity(learningActivities[childName.toLowerCase()])}</li>
+                        <li class="task-item"><span class="checkbox" onclick="toggleCheckbox(this)"></span>${getRandomActivity(learningActivities[childName.toLowerCase()])}</li>
                     </ul>
                 </div>
             `;
@@ -465,7 +484,7 @@
                 <div class="section">
                     <h3><span class="emoji">🏃‍♀️</span>Physical Activity</h3>
                     <ul class="task-list">
-                        <li class="task-item"><span class="checkbox"></span>${getRandomActivity(physicalActivities[childName.toLowerCase()])}</li>
+                        <li class="task-item"><span class="checkbox" onclick="toggleCheckbox(this)"></span>${getRandomActivity(physicalActivities[childName.toLowerCase()])}</li>
                     </ul>
                 </div>
             `;
@@ -475,7 +494,7 @@
                 <div class="section">
                     <h3><span class="emoji">🎨</span>Creative Arts</h3>
                     <ul class="task-list">
-                        <li class="task-item"><span class="checkbox"></span>${getRandomActivity(creativeActivities[childName.toLowerCase()])}</li>
+                        <li class="task-item"><span class="checkbox" onclick="toggleCheckbox(this)"></span>${getRandomActivity(creativeActivities[childName.toLowerCase()])}</li>
                     </ul>
                 </div>
             `;
@@ -485,7 +504,7 @@
                 <div class="special-subject">
                     <div style="font-size: 1.3em; margin-bottom: 10px;">${subject.title}</div>
                     <div style="background: rgba(255,255,255,0.2); padding: 10px; border-radius: 8px;">
-                        📝 ${subject.activities[childName.toLowerCase()]}
+                        <span class="checkbox" onclick="toggleCheckbox(this)" style="margin-right: 10px;"></span>📝 ${subject.activities[childName.toLowerCase()]}
                     </div>
                 </div>
             `;
@@ -496,7 +515,7 @@
                 <div class="section">
                     <h3><span class="emoji">📱</span>Screen Time</h3>
                     <ul class="task-list">
-                        <li class="task-item"><span class="checkbox"></span>${screenTime}</li>
+                        <li class="task-item"><span class="checkbox" onclick="toggleCheckbox(this)"></span>${screenTime}</li>
                     </ul>
                 </div>
             `;
@@ -528,6 +547,10 @@
             });
             
             container.innerHTML = content;
+        }
+
+        function toggleCheckbox(checkbox) {
+            checkbox.classList.toggle('checked');
         }
 
         // Initialize with Monday
